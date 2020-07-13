@@ -9,12 +9,13 @@
 #include "block_queue.h"
 
 using namespace std;
-
+//所谓同步日志，即当输出日志时，必须等待日志输出语句执行完毕后，才能执行后面的业务逻辑语句。
+//而使用异步日志进行输出时，日志输出语句与业务逻辑语句并不是在同一个线程中运行，而是有专门的线程用于进行日志输出操作，处理业务逻辑的主线程不用等待即可执行后续业务逻辑
 class Log
 {
 public:
     //C++11以后,使用局部变量懒汉不用加锁
-    static Log *get_instance()
+    static Log *get_instance()//单例模式
     {
         static Log instance;
         return &instance;
@@ -27,7 +28,7 @@ public:
     //可选择的参数有日志文件、日志缓冲区大小、最大行数以及最长日志条队列
     bool init(const char *file_name, int close_log, int log_buf_size = 8192, int split_lines = 5000000, int max_queue_size = 0);
 
-    void write_log(int level, const char *format, ...);
+    void write_log(int level, const char *format, ...);//写日志
 
     void flush(void);
 
@@ -41,7 +42,7 @@ private:
         while (m_log_queue->pop(single_log))
         {
             m_mutex.lock();
-            fputs(single_log.c_str(), m_fp);
+            fputs(single_log.c_str(), m_fp);//fputs()向指定的文件写入一个字符串;c_str()函数返回一个指向正规C字符串的指针常量, 内容与string串相同.
             m_mutex.unlock();
         }
     }
