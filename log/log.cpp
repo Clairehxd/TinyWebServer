@@ -39,16 +39,17 @@ bool Log::init(const char *file_name, int close_log, int log_buf_size, int split
     m_split_lines = split_lines;
 
     time_t t = time(NULL);
-    struct tm *sys_tm = localtime(&t);
+    struct tm *sys_tm = localtime(&t);//可通过tm结构来获得日期和时间
     struct tm my_tm = *sys_tm;
 
  
-    const char *p = strrchr(file_name, '/');
+    const char *p = strrchr(file_name, '/');//查找一个字符c在另一个字符串str中末次出现的位置（也就是从str的右侧开始查找字符c首次出现的位置）
     char log_full_name[256] = {0};
 
     if (p == NULL)
     {
         snprintf(log_full_name, 255, "%d_%02d_%02d_%s", my_tm.tm_year + 1900, my_tm.tm_mon + 1, my_tm.tm_mday, file_name);
+        //snprintf()，函数原型为int snprintf(char *str, size_t size, const char *format, ...)。将可变参数 “…” 按照format的格式格式化为字符串，然后再将其拷贝至str中。
     }
     else
     {
@@ -98,12 +99,12 @@ void Log::write_log(int level, const char *format, ...)
     m_mutex.lock();
     m_count++;
 
-    if (m_today != my_tm.tm_mday || m_count % m_split_lines == 0) //everyday log
+    if (m_today != my_tm.tm_mday || m_count % m_split_lines == 0) //everyday log //m_count日志行数记录，m_split_lines日志最大行数
     {
         
         char new_log[256] = {0};
-        fflush(m_fp);
-        fclose(m_fp);
+        fflush(m_fp);//fflush()会强迫将缓冲区内的数据写回参数stream 指定的文件中。
+        fclose(m_fp);//关闭
         char tail[16] = {0};
        
         snprintf(tail, 16, "%d_%02d_%02d_", my_tm.tm_year + 1900, my_tm.tm_mon + 1, my_tm.tm_mday);
@@ -123,8 +124,8 @@ void Log::write_log(int level, const char *format, ...)
  
     m_mutex.unlock();
 
-    va_list valst;
-    va_start(valst, format);
+    va_list valst;//VA_LIST 是在C语言中解决变参问题的一组宏，所在头文件：#include <stdarg.h>，用于获取不确定个数的参数。
+    va_start(valst, format);//va_start，函数名称，读取可变参数的过程其实就是在堆栈中，使用指针,遍历堆栈段中的参数列表,从低地址到高地址一个一个地把参数内容读出来的过程·
 
     string log_str;
     m_mutex.lock();
@@ -141,7 +142,7 @@ void Log::write_log(int level, const char *format, ...)
 
     m_mutex.unlock();
 
-    if (m_is_async && !m_log_queue->full())
+    if (m_is_async && !m_log_queue->full())//m_is_async异步
     {
         m_log_queue->push(log_str);
     }
