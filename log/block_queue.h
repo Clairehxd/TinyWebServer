@@ -7,10 +7,10 @@
 #define BLOCK_QUEUE_H
 
 #include <iostream>
-#include <stdlib.h>
+#include <stdlib.h>         //系统函数
 #include <pthread.h>
-#include <sys/time.h>
-#include "../lock/locker.h"
+#include <sys/time.h>       //sys/time.h 是 Linux系统 的日期时间头文件。
+#include "../lock/locker.h" //多线程同步，确保任一时刻只能有一个线程能进入关键代码段.
 using namespace std;
 
 template <class T>
@@ -21,7 +21,7 @@ public:
     {
         if (max_size <= 0)
         {
-            exit(-1);
+            exit(-1);   //程序异常退出
         }
 
         m_max_size = max_size;
@@ -31,7 +31,7 @@ public:
         m_back = -1;
     }
 
-    void clear()
+    void clear()//清除队列
     {
         m_mutex.lock();
         m_size = 0;
@@ -40,7 +40,7 @@ public:
         m_mutex.unlock();
     }
 
-    ~block_queue()
+    ~block_queue()//析构
     {
         m_mutex.lock();
         if (m_array != NULL)
@@ -153,7 +153,7 @@ public:
         while (m_size <= 0)
         {
             
-            if (!m_cond.wait(m_mutex.get()))
+            if (!m_cond.wait(m_mutex.get()))//m_mutex.get()取得互斥锁，wait()通知消费者等待;成功完成则是返回0
             {
                 m_mutex.unlock();
                 return false;
@@ -170,9 +170,10 @@ public:
     //增加了超时处理
     bool pop(T &item, int ms_timeout)
     {
-        struct timespec t = {0, 0};
-        struct timeval now = {0, 0};
-        gettimeofday(&now, NULL);
+        //time.h
+        struct timespec t = {0, 0}; //struct timespec {time_t tv_sec; (// seconds) long tv_nsec; (// and nanoseconds) };
+        struct timeval now = {0, 0};//struct timeval {time_t tv_sec; (// seconds) long tv_usec; (// microseconds) };
+        gettimeofday(&now, NULL);//此时的时间
         m_mutex.lock();
         if (m_size <= 0)
         {
@@ -199,14 +200,14 @@ public:
     }
 
 private:
-    locker m_mutex;
-    cond m_cond;
+    locker m_mutex;//互斥锁
+    cond m_cond;//条件变量
 
-    T *m_array;
-    int m_size;
-    int m_max_size;
-    int m_front;
-    int m_back;
+    T *m_array;//数组
+    int m_size;//当前大小
+    int m_max_size;//最大值
+    int m_front;//前
+    int m_back;//后
 };
 
 #endif
